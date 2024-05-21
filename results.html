@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Daftar Hasil Pengujian SO2</title>
+    <title>Hasil Perhitungan SO2</title>
     <style>
+        /* CSS untuk gaya yang lebih elegan dan layout di tengah */
         body {
             font-family: Arial, sans-serif;
             display: flex;
@@ -16,23 +17,32 @@
         }
         .container {
             background: #fff;
-            padding: 20px;
+            padding: 20px 40px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 80%;
+            max-width: 1000px;
         }
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
         }
         th, td {
-            border: 1px solid #ccc;
             padding: 10px;
             text-align: center;
         }
         button {
-            margin-top: 10px;
+            margin-bottom: 10px;
+            display: block;
+            width: calc(100% - 20px);
             padding: 10px;
+            margin-left: auto;
+            margin-right: auto;
             border: none;
             border-radius: 4px;
             background-color: #007BFF;
@@ -46,29 +56,27 @@
 </head>
 <body>
     <div class="container">
-        <h1>Daftar Hasil Pengujian SO2</h1>
+        <h1>Hasil Perhitungan SO2</h1>
+        <button onclick="location.href='index.html'">Kembali ke Perhitungan</button>
+        <button onclick="clearSelectedResults()">Hapus Data Terpilih</button>
+        <button onclick="clearAllResults()">Hapus Semua Data</button>
         <table id="results-table">
             <thead>
                 <tr>
-                    <th>Nomor</th>
+                    <th>No</th>
                     <th>Waktu</th>
                     <th>V1</th>
                     <th>Pt</th>
-                    <th>Kadar SO2 (%)</th>
+                    <th>SO2 (%)</th>
                     <th>Pilih</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Hasil pengujian akan ditampilkan di sini -->
             </tbody>
         </table>
-        <button onclick="clearSelectedResults()">Hapus Data Terpilih</button>
-        <button onclick="clearAllResults()">Hapus Semua Data</button>
-        <button onclick="location.href='index.html'">Kembali ke Perhitungan</button>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="results.js"></script>
 </body>
 </html>
