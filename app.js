@@ -1,4 +1,17 @@
-let results = JSON.parse(localStorage.getItem('results')) || [];
+// Konfigurasi Firebase
+const firebaseConfig = {
+    apiKey: "AIzaSyBgtPpDuHCLppJxrHUeLnyBDbhCOsq6QTA",
+    authDomain: "hitung-so2.firebaseapp.com",
+    databaseURL: "https://console.firebase.google.com/project/hitung-so2/hosting/sites/hitung-so2",
+    projectId: "hitung-so2",
+    storageBucket: "hitung-so2.appspot.com",
+    messagingSenderId: "945221839072",
+    appId: "G-012ZG1NG61"
+};
+
+// Inisialisasi Firebase
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
 
 // Muat konstanta dari localStorage
 window.onload = function() {
@@ -35,8 +48,8 @@ function calculateSO2() {
         return;
     }
 
-    const numerator = c * v * 10.945;
-    const denominator = pt * v1 + (c * v * 10.945);
+    const numerator = c * v * 10945;
+    const denominator = pt * v1 + (c * v * 10945);
     const so2 = (numerator / denominator) * 100;
 
     const result = {
@@ -46,8 +59,12 @@ function calculateSO2() {
         time
     };
 
-    results.push(result);
-    localStorage.setItem('results', JSON.stringify(results));
+    // Simpan hasil ke Firebase
+    database.ref('results').push(result);
 
     document.getElementById('result').innerText = `Hasil Kadar SO2: ${so2.toFixed(2)}%`;
+
+    // Reset input V1 dan waktu
+    document.getElementById('v1').value = '';
+    document.getElementById('time').value = '';
 }

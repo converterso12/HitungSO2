@@ -1,33 +1,48 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const results = JSON.parse(localStorage.getItem('results')) || [];
+    const database = firebase.database();
     const tableBody = document.querySelector('#results-table tbody');
 
-    results.forEach((result, index) => {
-        const row = document.createElement('tr');
+    // Ambil data dari Firebase
+    database.ref('results').on('value', (snapshot) => {
+        const results = snapshot.val();
+        tableBody.innerHTML = ''; // Kosongkan tabel sebelum menampilkan hasil
 
-        row.innerHTML = `
-            <td>${index + 1}</td>
-            <td>${result.time}</td>
-            <td>${result.v1}</td>
-            <td>${result.pt}</td>
-            <td>${result.so2}</td>
-            <td><input type="checkbox" class="select-result" data-index="${index}"></td>
-        `;
+        let rowNumber = 1;
+        for (const id in results) {
+            const result = results[id];
+            const row = document.createElement('tr');
 
-        tableBody.appendChild(row);
+            row.innerHTML = `
+                <td>${rowNumber}</td>
+                <td>${result.time}</td>
+                <td>${result.v1}</td>
+                <td>${result.pt}</td>
+                <td>${result.so2}</td>
+                <td><input type="checkbox" class="select-result" data-id="${id}"></td>
+            `;
+
+            tableBody.appendChild(row);
+            rowNumber++;
+        }
     });
 });
 
 function clearSelectedResults() {
-    let results = JSON.parse(localStorage.getItem('results')) || [];
-    const selectedIndexes = Array.from(document.querySelectorAll('.select-result:checked')).map(checkbox => parseInt(checkbox.dataset.index));
+    const database = firebase.database();
+    const selectedIds = Array.from(document.querySelectorAll('.select-result:checked')).map(checkbox => checkbox.dataset.id);
 
-    results = results.filter((result, index) => !selectedIndexes.includes(index));
-    localStorage.setItem('results', JSON.stringify(results));
+    selectedIds.forEach(id => {
+        database.ref(`results/${id}`).remove();
+    });
+
+    // Perbarui tampilan tabel setelah penghapusan
     location.reload();
 }
 
 function clearAllResults() {
-    localStorage.removeItem('results');
+    const database = firebase.database();
+    database.ref('results').remove();
+
+    // Perbarui tampilan tabel setelah penghapusan
     location.reload();
 }
