@@ -35,8 +35,8 @@ function calculateSO2() {
         return;
     }
 
-    const numerator = c * v * 10945;
-    const denominator = pt * v1 + (c * v * 10945);
+    const numerator = c * v * 10.945;
+    const denominator = pt * v1 + (c * v * 10.945);
     const so2 = (numerator / denominator) * 100;
 
     const result = {
