@@ -3,89 +3,213 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perhitungan Kadar SO2</title>
+    <title>Perhitungan SO2</title>
     <style>
         body {
             font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            flex-direction: column;
+            padding: 20px;
             margin: 0;
-            background-color: #f0f0f0;
         }
         .container {
-            background: #fff;
-            padding: 20px 40px;
+            width: 90%;
+            max-width: 600px;
+            padding: 20px;
+            background-color: #fff;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            text-align: center;
+            margin-bottom: 20px;
         }
-        input {
-            margin-bottom: 10px;
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        label {
             display: block;
-            width: calc(100% - 20px);
+            margin: 10px 0 5px;
+        }
+        input[type="number"],
+        input[type="datetime-local"] {
+            width: calc(100% - 22px);
             padding: 10px;
-            margin-left: auto;
-            margin-right: auto;
-            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
             border-radius: 4px;
         }
         button {
-            margin-top: 10px;
             display: block;
-            width: calc(100% - 20px);
+            width: 100%;
             padding: 10px;
-            margin-left: auto;
-            margin-right: auto;
+            background-color: #28a745;
+            color: #fff;
             border: none;
             border-radius: 4px;
-            background-color: #007BFF;
-            color: #fff;
             cursor: pointer;
+            margin-top: 10px;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: #218838;
         }
         #result {
             margin-top: 20px;
-            font-size: 1.2em;
+            font-size: 18px;
             font-weight: bold;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #28a745;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+        .delete-btn {
+            background-color: #dc3545;
+            margin-top: 5px;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+        .delete-btn:hover {
+            background-color: #c82333;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Perhitungan Kadar SO2</h1>
-        <form id="so2-form">
-            <h2>Konstanta</h2>
-            <label for="c">C:</label>
-            <input type="number" id="c" step="0.00001"><br>
-
-            <label for="v">V:</label>
-            <input type="number" id="v" step="0.01"><br>
-
-            <label for="pt">Pt:</label>
-            <input type="number" id="pt" step="0.001"><br>
-
-            <button type="button" onclick="saveConstants()">Simpan Konstanta</button>
-
-            <h2>Waktu Pengujian</h2>
-            <label for="time">Waktu:</label>
-            <input type="datetime-local" id="time" required><br>
-
-            <h2>Input Pengukuran</h2>
-            <label for="v1">V1:</label>
-            <input type="number" id="v1" required><br>
-
-            <button type="button" onclick="calculateSO2()">Hitung</button>
-            <button type="button" onclick="location.href='results.html'">Tampilkan Hasil</button>
-        </form>
-
+        <label for="V">Volume Udara (V)</label>
+        <input type="number" id="V" value="10" step="any">
+        <label for="C">Konsentrasi SO2 (C)</label>
+        <input type="number" id="C" value="0.10282" step="any">
+        <label for="Pt">Laju Alir (Pt)</label>
+        <input type="number" id="Pt" value="0.855" step="any">
+        <button onclick="saveConstants()">Simpan Konstanta</button>
+        <label for="time">Waktu Pengujian</label>
+        <input type="datetime-local" id="time">
+        <label for="V1">Volume Reagen (V1)</label>
+        <input type="number" id="V1" step="any">
+        <button onclick="calculateSO2()">Hitung</button>
         <div id="result"></div>
     </div>
+    <div class="container">
+        <h2>Hasil Perhitungan</h2>
+        <table id="resultsTable">
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Tanggal</th>
+                    <th>Waktu</th>
+                    <th>V1</th>
+                    <th>Pt</th>
+                    <th>Kadar SO2</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="app.js"></script>
+    <script>
+        let results = JSON.parse(localStorage.getItem('results')) || [];
+
+        function saveConstants() {
+            const V = parseFloat(document.getElementById('V').value);
+            const C = parseFloat(document.getElementById('C').value);
+            const Pt = parseFloat(document.getElementById('Pt').value);
+            if (isNaN(V) || isNaN(C) || isNaN(Pt)) {
+                alert('Harap isi semua kotak input untuk konstanta!');
+                return;
+            }
+            localStorage.setItem('V', V);
+            localStorage.setItem('C', C);
+            localStorage.setItem('Pt', Pt);
+            alert('Konstanta disimpan!');
+        }
+
+        function calculateSO2() {
+            const V = parseFloat(document.getElementById('V').value);
+            const C = parseFloat(document.getElementById('C').value);
+            const Pt = parseFloat(document.getElementById('Pt').value);
+            const V1 = parseFloat(document.getElementById('V1').value);
+            const time = document.getElementById('time').value;
+            if (isNaN(V1) || !time) {
+                alert('Harap isi semua kotak input untuk perhitungan!');
+                return;
+            }
+            const result = (C * V * 10945) / (Pt * V1 + (C * V * 10945)) * 100;
+            document.getElementById('result').innerText = `SO2: ${result.toFixed(2)}%`;
+
+            const newResult = {
+                V1,
+                time,
+                Pt,
+                so2: result.toFixed(2)
+            };
+
+            results.push(newResult);
+            localStorage.setItem('results', JSON.stringify(results));
+            renderResults();
+        }
+
+        function renderResults() {
+            const resultsTable = document.getElementById('resultsTable').getElementsByTagName('tbody')[0];
+            resultsTable.innerHTML = '';
+
+            results.forEach((result, index) => {
+                const row = resultsTable.insertRow();
+                const [date, time] = result.time.split('T');
+                row.insertCell(0).innerText = index + 1;
+                row.insertCell(1).innerText = date;
+                row.insertCell(2).innerText = time;
+                row.insertCell(3).innerText = result.V1;
+                row.insertCell(4).innerText = result.Pt;
+                row.insertCell(5).innerText = result.so2 + '%';
+                const deleteCell = row.insertCell(6);
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-btn';
+                deleteButton.innerText = 'Hapus';
+                deleteButton.onclick = () => deleteResult(index);
+                deleteCell.appendChild(deleteButton);
+            });
+        }
+
+        function deleteResult(index) {
+            if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
+                results.splice(index, 1);
+                localStorage.setItem('results', JSON.stringify(results));
+                renderResults();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const V = localStorage.getItem('V');
+            const C = localStorage.getItem('C');
+            const Pt = localStorage.getItem('Pt');
+            if (V) document.getElementById('V').value = V;
+            if (C) document.getElementById('C').value = C;
+            if (Pt) document.getElementById('Pt').value = Pt;
+
+            renderResults();
+        });
+    </script>
 </body>
 </html>
