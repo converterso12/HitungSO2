@@ -135,16 +135,16 @@
 <body>
     <div class="container">
         <h1>Perhitungan Kadar SO2</h1>
-        <label for="V">Volume Udara (V)</label>
+        <label for="V">Volume Iodium (V)</label>
         <input type="number" id="V" value="10" step="any">
-        <label for="C">Konsentrasi SO2 (C)</label>
+        <label for="C">Konsentrasi Iodium (C)</label>
         <input type="number" id="C" value="0.10282" step="any">
-        <label for="Pt">Laju Alir (Pt)</label>
+        <label for="Pt"> Konversi Suhu (Pt)</label>
         <input type="number" id="Pt" value="0.855" step="any">
         <button onclick="saveConstants()">Simpan Konstanta</button>
         <label for="time">Waktu Pengujian</label>
         <input type="datetime-local" id="time">
-        <label for="V1">Volume Reagen (V1)</label>
+        <label for="V1">Volume Larutan Berkurang (V1)</label>
         <input type="number" id="V1" step="any">
         <button onclick="calculateSO2()">Hitung</button>
         <div id="result"></div>
@@ -195,7 +195,7 @@
                 alert('Harap isi semua kotak input untuk perhitungan!');
                 return;
             }
-            const result = (C * V * 10945) / (Pt * V1 + (C * V * 10945)) * 100;
+            const result = (C * V * 10.945) / (Pt * V1 + (C * V * 10.945)) * 100;
             document.getElementById('result').innerText = `SO2: ${result.toFixed(2)}%`;
 
             const newResult = {
