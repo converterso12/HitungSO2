@@ -108,6 +108,8 @@
                 });
 
                 Object.keys(groupedData).forEach((date) => {
+                    groupedData[date].sort((a, b) => new Date(a.time) - new Date(b.time)); // Sorting data by time
+
                     const table = document.createElement('table');
                     const caption = document.createElement('caption');
                     caption.textContent = `Tanggal: ${date}`;
