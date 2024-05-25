@@ -5,13 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Konsentrasi SO2</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .popup {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .popup-content {
+            position: absolute;
+            width: 300px;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .popup input {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+
+        .popup button {
+            padding: 10px 20px;
+            margin: 5px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Konsentrasi Gas SO2</h1>
         <div id="results"></div>
-        <button onclick="deleteAllData()">Hapus Semua Data</button>
+        <button onclick="showDeleteAllConfirmation()">Hapus Semua Data</button>
         <button onclick="location.href='index.html'">Kembali ke Perhitungan</button>
+    </div>
+
+    <!-- Konfirmasi Penghapusan -->
+    <div id="delete-confirmation" class="popup">
+        <div class="popup-content">
+            <h2>Konfirmasi Penghapusan</h2>
+            <p>Masukkan kode verifikasi untuk melanjutkan:</p>
+            <input type="password" id="verification-code" />
+            <button onclick="confirmDeletion()">Konfirmasi</button>
+            <button onclick="cancelDeletion()">Batal</button>
+        </div>
     </div>
 
     <script type="module">
@@ -32,6 +79,9 @@
         const database = getDatabase(app);
         const dataRef = ref(database, 'so2-data');
 
+        let deleteKey = null;
+        let deleteAll = false;
+
         onValue(dataRef, (snapshot) => {
             const data = snapshot.val();
             const resultsContainer = document.getElementById('results');
@@ -49,7 +99,7 @@
                     }
 
                     groupedData[date].push({
-                        key: key, // Include the key for deletion reference
+                        key: key,
                         time: item.time,
                         v1: item.v1,
                         pt: item.pt,
@@ -85,7 +135,7 @@
                             <td>${item.v1}</td>
                             <td>${item.pt}</td>
                             <td>${item.so2.toFixed(2)}</td>
-                            <td><button onclick="deleteData('${item.key}')">Hapus</button></td>
+                            <td><button onclick="showDeleteConfirmation('${item.key}')">Hapus</button></td>
                         `;
                         tbody.appendChild(tr);
                     });
@@ -98,31 +148,50 @@
             }
         });
 
-        window.deleteData = function(key) {
-            if (confirm('Apakah Anda yakin ingin menghapus data ini?')) {
-                const itemRef = ref(database, `so2-data/${key}`);
-                remove(itemRef)
-                    .then(() => {
-                        alert('Data berhasil dihapus.');
-                    })
-                    .catch((error) => {
-                        console.error("Error removing data: ", error);
-                        alert('Terjadi kesalahan saat menghapus data.');
-                    });
+        window.showDeleteConfirmation = function(key) {
+            deleteKey = key;
+            deleteAll = false;
+            document.getElementById('delete-confirmation').style.display = 'flex';
+        }
+
+        window.showDeleteAllConfirmation = function() {
+            deleteKey = null;
+            deleteAll = true;
+            document.getElementById('delete-confirmation').style.display = 'flex';
+        }
+
+        window.confirmDeletion = function() {
+            const verificationCode = document.getElementById('verification-code').value;
+            if (verificationCode === '0000') {
+                if (deleteAll) {
+                    remove(dataRef)
+                        .then(() => {
+                            alert('Semua data berhasil dihapus.');
+                            document.getElementById('delete-confirmation').style.display = 'none';
+                        })
+                        .catch((error) => {
+                            console.error("Error removing data: ", error);
+                            alert('Terjadi kesalahan saat menghapus data.');
+                        });
+                } else if (deleteKey) {
+                    const itemRef = ref(database, `so2-data/${deleteKey}`);
+                    remove(itemRef)
+                        .then(() => {
+                            alert('Data berhasil dihapus.');
+                            document.getElementById('delete-confirmation').style.display = 'none';
+                        })
+                        .catch((error) => {
+                            console.error("Error removing data: ", error);
+                            alert('Terjadi kesalahan saat menghapus data.');
+                        });
+                }
+            } else {
+                alert('Kode verifikasi salah.');
             }
         }
 
-        window.deleteAllData = function() {
-            if (confirm('Apakah Anda yakin ingin menghapus semua data?')) {
-                remove(dataRef)
-                    .then(() => {
-                        alert('Semua data berhasil dihapus.');
-                    })
-                    .catch((error) => {
-                        console.error("Error removing data: ", error);
-                        alert('Terjadi kesalahan saat menghapus data.');
-                    });
-            }
+        window.cancelDeletion = function() {
+            document.getElementById('delete-confirmation').style.display = 'none';
         }
     </script>
 </body>
