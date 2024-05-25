@@ -9,38 +9,32 @@
 <body>
     <div class="container">
         <h1>Perhitungan Kadar SO2</h1>
-        <form id="so2-form">
-            <label for="c-value">Nilai C:</label>
-            <input type="number" id="c-value" step="0.00001" value="0.10282">
-
-            <label for="v-value">Nilai V (ml):</label>
-            <input type="number" id="v-value" value="10">
-
-            <label for="pt-value">Nilai Pt:</label>
-            <input type="number" id="pt-value" step="0.001" value="0.855">
-
-            <div class="button-group">
-                <button type="button" onclick="saveConstants()">Simpan Konstanta</button>
-            </div>
+        <form id="constantsForm">
+            <label for="c">Nilai C:</label>
+            <input type="number" id="c" value="0.10282">
+            <label for="v">Nilai V (ml):</label>
+            <input type="number" id="v" value="10">
+            <label for="pt">Nilai Pt:</label>
+            <input type="number" id="pt" value="0.855">
+            <button type="button" onclick="saveConstants()">Simpan Konstanta</button>
         </form>
-
-        <label for="test-time">Waktu:</label>
-        <input type="datetime-local" id="test-time">
-
-        <label for="v1-value">Nilai V1:</label>
-        <input type="number" id="v1-value" step="0.01">
-
-        <div class="button-group">
+        <form id="calculationForm">
+            <label for="time">Waktu Pengujian:</label>
+            <input type="datetime-local" id="time">
+            <label for="v1">Nilai V1:</label>
+            <input type="number" id="v1">
             <button type="button" onclick="calculateSO2()">Hitung</button>
-        </div>
-
+        </form>
         <div id="result"></div>
+        <button onclick="location.href='results.html'">Lihat Hasil</button>
     </div>
-
+    
     <script type="module">
+        // Import the functions you need from the SDKs you need
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getDatabase, ref, set, push, child, get } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
+        import { getDatabase, ref, set, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
 
+        // Your web app's Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyDwcwcIdTSPUadytFCh8RqBM8zCVtXEo-I",
             authDomain: "dataso2-id.firebaseapp.com",
@@ -51,49 +45,48 @@
             appId: "1:1084913028872:web:d3588f12dcbeed0cec26bd"
         };
 
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        const database = getDatabase(app);
 
-        function saveConstants() {
-            const c = parseFloat(document.getElementById('c-value').value);
-            const v = parseFloat(document.getElementById('v-value').value);
-            const pt = parseFloat(document.getElementById('pt-value').value);
+        // Define and expose functions to the global scope
+        window.constants = {
+            c: 0.10282,
+            v: 10,
+            pt: 0.855
+        };
 
-            set(ref(db, 'constants'), { c, v, pt })
-                .then(() => alert('Konstanta tersimpan!'))
-                .catch((error) => console.error('Error saving constants:', error));
+        window.saveConstants = function() {
+            constants.c = parseFloat(document.getElementById('c').value);
+            constants.v = parseFloat(document.getElementById('v').value);
+            constants.pt = parseFloat(document.getElementById('pt').value);
+            alert('Konstanta berhasil disimpan');
         }
 
-        function calculateSO2() {
-            const v1 = parseFloat(document.getElementById('v1-value').value);
-            const time = document.getElementById('test-time').value;
+        window.calculateSO2 = function() {
+            const time = document.getElementById('time').value;
+            const v1 = parseFloat(document.getElementById('v1').value);
 
-            if (!time || isNaN(v1)) {
-                alert('Masukkan waktu dan nilai V1 yang valid!');
-                return;
+            if (time && !isNaN(v1)) {
+                const so2 = constants.c * constants.v * constants.pt * v1;
+
+                const newEntry = push(ref(database, 'so2-data'));
+                set(newEntry, {
+                    time: time,
+                    v1: v1,
+                    pt: constants.pt,
+                    so2: so2
+                })
+                .then(() => {
+                    document.getElementById('result').innerHTML = `Hasil Kadar SO2: ${so2.toFixed(2)}`;
+                })
+                .catch((error) => {
+                    console.error("Error writing to database: ", error);
+                    alert("Terjadi kesalahan saat menyimpan data.");
+                });
+            } else {
+                alert('Harap isi semua data dengan benar');
             }
-
-            const constantsRef = ref(db, 'constants');
-
-            get(constantsRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const { c, v, pt } = snapshot.val();
-                    const so2 = (c * v * 10.945) / (pt * v1 + (c * v * 10.945)) * 100;
-
-                    const newEntryRef = push(child(ref(db), 'so2-data'));
-                    set(newEntryRef, {
-                        time: new Date(time).toISOString(),
-                        v1: v1,
-                        pt: pt,
-                        so2: so2
-                    }).then(() => {
-                        alert('Perhitungan tersimpan!');
-                        document.getElementById('result').innerText = `Kadar SO2: ${so2.toFixed(2)}%`;
-                    }).catch((error) => console.error('Error saving calculation:', error));
-                } else {
-                    alert('Konstanta belum disimpan!');
-                }
-            }).catch((error) => console.error('Error getting constants:', error));
         }
     </script>
 </body>
