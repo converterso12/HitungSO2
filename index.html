@@ -74,7 +74,7 @@
                     so2: so2
                 })
                 .then(() => {
-                    document.getElementById('result').innerHTML = `Hasil Kadar SO2: ${so2.toFixed(2)}`;
+                    document.getElementById('result').innerHTML = `Hasil Kadar SO2: ${so2.toFixed(2)}%`;
                 })
                 .catch((error) => {
                     console.error("Error writing to database: ", error);
