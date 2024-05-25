@@ -40,6 +40,50 @@
             padding: 10px 20px;
             margin: 5px;
         }
+
+        .date-section {
+            margin: 10px 0;
+        }
+
+        .date-header {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 5px;
+        }
+
+        .date-header:hover {
+            background-color: #e1e1e1;
+        }
+
+        .date-header::after {
+            content: '▼';
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .date-header.expanded::after {
+            content: '▲';
+        }
+
+        .date-section table {
+            display: none;
+            margin: 10px 0;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .date-section th, .date-section td {
+            border: 1px solid #007DC4;
+            padding: 8px;
+        }
+
+        .date-section th {
+            background-color: #4692FF;
+        }
     </style>
 </head>
 <body>
@@ -47,6 +91,7 @@
         <h1>Konsentrasi Gas SO2</h1>
         <div id="results"></div>
         <button onclick="showDeleteAllConfirmation()">Hapus Semua Data</button>
+        <button onclick="showDeleteSelectedConfirmation()">Hapus Data Terpilih</button>
         <button onclick="location.href='index.html'">Kembali ke Perhitungan</button>
     </div>
 
@@ -57,6 +102,17 @@
             <p>Masukkan kode verifikasi untuk melanjutkan:</p>
             <input type="password" id="verification-code" />
             <button onclick="confirmDeletion()">Konfirmasi</button>
+            <button onclick="cancelDeletion()">Batal</button>
+        </div>
+    </div>
+
+    <!-- Konfirmasi Penghapusan Terpilih -->
+    <div id="delete-selected-confirmation" class="popup">
+        <div class="popup-content">
+            <h2>Konfirmasi Penghapusan</h2>
+            <p>Anda yakin ingin menghapus data yang dipilih?</p>
+            <input type="password" id="verification-code-selected" />
+            <button onclick="confirmDeletionSelected()">Konfirmasi</button>
             <button onclick="cancelDeletion()">Batal</button>
         </div>
     </div>
@@ -81,6 +137,7 @@
 
         let deleteKey = null;
         let deleteAll = false;
+        let deleteSelected = false;
 
         onValue(dataRef, (snapshot) => {
             const data = snapshot.val();
@@ -110,11 +167,21 @@
                 Object.keys(groupedData).forEach((date) => {
                     groupedData[date].sort((a, b) => new Date(a.time) - new Date(b.time)); // Sorting data by time
 
-                    const table = document.createElement('table');
-                    const caption = document.createElement('caption');
-                    caption.textContent = `Tanggal: ${date}`;
-                    table.appendChild(caption);
+                    const dateSection = document.createElement('div');
+                    dateSection.className = 'date-section';
 
+                    const dateHeader = document.createElement('h2');
+                    dateHeader.className = 'date-header';
+                    dateHeader.textContent = `Tanggal: ${date}`;
+                    dateHeader.onclick = () => {
+                        const table = dateSection.querySelector('table');
+                        const isVisible = table.style.display === 'table';
+                        table.style.display = isVisible ? 'none' : 'table';
+                        dateHeader.classList.toggle('expanded', !isVisible);
+                    };
+                    dateSection.appendChild(dateHeader);
+
+                    const table = document.createElement('table');
                     const thead = document.createElement('thead');
                     thead.innerHTML = `
                         <tr>
@@ -123,7 +190,7 @@
                             <th>Nilai V1</th>
                             <th>Pt</th>
                             <th>Kadar SO2</th>
-                            <th>Aksi</th>
+                            <th>Pilih</th>
                         </tr>
                     `;
                     table.appendChild(thead);
@@ -137,29 +204,32 @@
                             <td>${item.v1}</td>
                             <td>${item.pt}</td>
                             <td>${item.so2.toFixed(2)}</td>
-                            <td><button onclick="showDeleteConfirmation('${item.key}')">Hapus</button></td>
+                            <td><input type="checkbox" class="delete-checkbox" data-key="${item.key}"></td>
                         `;
                         tbody.appendChild(tr);
                     });
                     table.appendChild(tbody);
 
-                    resultsContainer.appendChild(table);
+                    dateSection.appendChild(table);
+                    resultsContainer.appendChild(dateSection);
                 });
             } else {
                 resultsContainer.innerHTML = '<p>Tidak ada data</p>';
             }
         });
 
-        window.showDeleteConfirmation = function(key) {
-            deleteKey = key;
-            deleteAll = false;
-            document.getElementById('delete-confirmation').style.display = 'flex';
-        }
-
         window.showDeleteAllConfirmation = function() {
             deleteKey = null;
             deleteAll = true;
+            deleteSelected = false;
             document.getElementById('delete-confirmation').style.display = 'flex';
+        }
+
+        window.showDeleteSelectedConfirmation = function() {
+            deleteKey = null;
+            deleteAll = false;
+            deleteSelected = true;
+            document.getElementById('delete-selected-confirmation').style.display = 'flex';
         }
 
         window.confirmDeletion = function() {
@@ -175,18 +245,36 @@
                             console.error("Error removing data: ", error);
                             alert('Terjadi kesalahan saat menghapus data.');
                         });
-                } else if (deleteKey) {
-                    const itemRef = ref(database, `so2-data/${deleteKey}`);
+                }
+            } else {
+                alert('Kode verifikasi salah.');
+            }
+        }
+
+        window.confirmDeletionSelected = function() {
+            const verificationCode = document.getElementById('verification-code-selected').value;
+            if (verificationCode === '0000') {
+                const checkboxes = document.querySelectorAll('.delete-checkbox:checked');
+                if (checkboxes.length === 0) {
+                    alert('Tidak ada data yang dipilih.');
+                    return;
+                }
+
+                const keysToDelete = Array.from(checkboxes).map(checkbox => checkbox.dataset.key);
+                keysToDelete.forEach((key, idx) => {
+                    const itemRef = ref(database, `so2-data/${key}`);
                     remove(itemRef)
                         .then(() => {
-                            alert('Data berhasil dihapus.');
-                            document.getElementById('delete-confirmation').style.display = 'none';
+                            if (idx === keysToDelete.length - 1) {
+                                alert('Data terpilih berhasil dihapus.');
+                                document.getElementById('delete-selected-confirmation').style.display = 'none';
+                            }
                         })
                         .catch((error) => {
                             console.error("Error removing data: ", error);
                             alert('Terjadi kesalahan saat menghapus data.');
                         });
-                }
+                });
             } else {
                 alert('Kode verifikasi salah.');
             }
@@ -194,6 +282,7 @@
 
         window.cancelDeletion = function() {
             document.getElementById('delete-confirmation').style.display = 'none';
+            document.getElementById('delete-selected-confirmation').style.display = 'none';
         }
     </script>
 </body>
