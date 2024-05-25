@@ -78,7 +78,7 @@
             get(constantsRef).then((snapshot) => {
                 if (snapshot.exists()) {
                     const { c, v, pt } = snapshot.val();
-                    const so2 = (c * v * 10945) / (pt * v1 + (c * v * 10945)) * 100;
+                    const so2 = (c * v * 10.945) / (pt * v1 + (c * v * 10.945)) * 100;
 
                     const newEntryRef = push(child(ref(db), 'so2-data'));
                     set(newEntryRef, {
