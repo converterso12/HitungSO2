@@ -6,7 +6,73 @@
     <title>Konsentrasi SO2</title>
     <link rel="stylesheet" href="style.css">
     <style>
-
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .popup {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+        }
+        .popup-content {
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .date-header {
+            cursor: pointer;
+            color: #007bff;
+        }
+        .date-header:hover {
+            text-decoration: underline;
+        }
+        .expanded {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -62,6 +128,12 @@
         let deleteAll = false;
         let deleteSelected = false;
 
+        const ptToTemp = (pt) => {
+            const basePt = 0.884;
+            const temp = 25 + Math.round((basePt - pt) / 0.005);
+            return temp;
+        };
+
         onValue(dataRef, (snapshot) => {
             const data = snapshot.val();
             const resultsContainer = document.getElementById('results');
@@ -108,24 +180,25 @@
                     const thead = document.createElement('thead');
                     thead.innerHTML = `
                         <tr>
-                            <th>No</br>(数字)</th>
-                            <th>Jam</br>(点钟)</th>
+                            <th>No</th>
+                            <th>Jam</th>
                             <th>Nilai V1</th>
-                            <th>Pt</th>
-                            <th>Kadar SO2</br>(二氧化硫浓度)</th>
-                            <th>Pilih</br>(选择)</th>
+                            <th>Temp (°C)</th>
+                            <th>Kadar SO2</th>
+                            <th>Pilih</th>
                         </tr>
                     `;
                     table.appendChild(thead);
 
                     const tbody = document.createElement('tbody');
                     groupedData[date].forEach((item, idx) => {
+                        const temp = ptToTemp(item.pt);
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td>${idx + 1}</td>
                             <td>${new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                             <td>${item.v1}</td>
-                            <td>${item.pt}</td>
+                            <td>${temp}°C</td>
                             <td>${item.so2.toFixed(2)}</td>
                             <td><input type="checkbox" class="delete-checkbox" data-key="${item.key}"></td>
                         `;
