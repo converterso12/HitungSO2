@@ -17,6 +17,7 @@
             <label for="pt">Nilai Pt:</label>
             <input type="number" id="pt" value="0.855">
             <button type="button" onclick="saveConstants()">Simpan Konstanta</button>
+            <button type="button" onclick="location.href='dataSuhu.html'">Lihat Nilai Pt</button>
         </form>
         <form id="calculationForm">
             <label for="time">Waktu Pengujian:</label>
@@ -59,6 +60,7 @@
             alert('Konstanta berhasil disimpan');
         }
 
+
         window.calculateSO2 = function() {
             const time = document.getElementById('time').value;
             const v1 = parseFloat(document.getElementById('v1').value);
@@ -74,7 +76,7 @@
                     so2: so2
                 })
                 .then(() => {
-                    document.getElementById('result').innerHTML = `Hasil Kadar SO2: ${so2.toFixed(2)}%`;
+                    document.getElementById('result').innerHTML = `Hasil Kadar SO2: ${so2.toFixed(2)}`;
                 })
                 .catch((error) => {
                     console.error("Error writing to database: ", error);
