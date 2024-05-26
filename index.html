@@ -54,11 +54,6 @@
             text-align: center;
             margin-top: 20px;
         }
-        #currentPt {
-            display: inline-block;
-            margin-left: 10px;
-            font-weight: bold;
-        }
     </style>
 </head>
 <body>
@@ -69,7 +64,7 @@
             <input type="number" id="c">
             <label for="v">Nilai V (ml):</label>
             <input type="number" id="v">
-            <label for="temperature">Temperatur (°C): </label>
+            <label for="temperature">Temperatur (°C):</label>
             <select id="temperature">
                 <option value="0.884">25°C (Pt: 0.884)</option>
                 <option value="0.879">26°C (Pt: 0.879)</option>
@@ -98,7 +93,7 @@
     
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getDatabase, ref, set, push, get, child } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
+        import { getDatabase, ref, set, push, get } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDwcwcIdTSPUadytFCh8RqBM8zCVtXEo-I",
@@ -127,7 +122,6 @@
 
             set(constantsRef, constants)
                 .then(() => {
-                    document.getElementById('currentPt').innerText = `Pt: ${constants.pt}`;
                     alert('Konstanta berhasil disimpan');
                 })
                 .catch((error) => {
@@ -173,7 +167,6 @@
                     document.getElementById('c').value = constants.c;
                     document.getElementById('v').value = constants.v;
                     document.getElementById('temperature').value = constants.pt;
-                    document.getElementById('currentPt').innerText = `Pt: ${constants.pt}`;
                 }
             }).catch((error) => {
                 console.error("Error loading constants: ", error);
