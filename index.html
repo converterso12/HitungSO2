@@ -112,13 +112,13 @@
         window.constants = {
             c: 0.10282,
             v: 10,
-            pt: 0.884
+            pt: 0.884.toFixed(3) // Pt ditampilkan dengan 3 angka di belakang koma
         };
 
         window.saveConstants = function() {
             constants.c = parseFloat(document.getElementById('c').value);
             constants.v = parseFloat(document.getElementById('v').value);
-            constants.pt = parseFloat(document.getElementById('temperature').value);
+            constants.pt = parseFloat(document.getElementById('temperature').value).toFixed(3); // Memastikan Pt menampilkan 3 angka di belakang koma
 
             set(constantsRef, constants)
                 .then(() => {
@@ -147,10 +147,10 @@
                 .then(() => {
                     document.getElementById('result').innerHTML = `Hasil Kadar SO2: ${so2.toFixed(2)}`;
                 })
-                .catch((error) => {
-                    console.error("Error writing to database: ", error);
-                    alert("Terjadi kesalahan saat menyimpan data.");
-                });
+               .catch((error) => {
+                        console.error("Error writing to database: ", error);
+                        alert("Terjadi kesalahan saat menyimpan data.");
+                    });
             } else {
                 alert('Harap isi semua data dengan benar');
             }
@@ -166,7 +166,7 @@
 
                     document.getElementById('c').value = constants.c;
                     document.getElementById('v').value = constants.v;
-                    document.getElementById('temperature').value = constants.pt;
+                    document.getElementById('temperature').value = parseFloat(constants.pt).toFixed(3); // Memastikan Pt ditampilkan dengan 3 angka di belakang koma
                 }
             }).catch((error) => {
                 console.error("Error loading constants: ", error);
