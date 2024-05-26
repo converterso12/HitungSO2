@@ -88,7 +88,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>Konsentrasi Gas SO2</h1>
+        <h1>Konsentrasi Gas SO2</br>二氧化硫浓度</h1>
         <div id="results"></div>
         <button onclick="showDeleteAllConfirmation()">Hapus Semua Data</button>
         <button onclick="showDeleteSelectedConfirmation()">Hapus Data Terpilih</button>
@@ -172,7 +172,7 @@
 
                     const dateHeader = document.createElement('h2');
                     dateHeader.className = 'date-header';
-                    dateHeader.textContent = `Tanggal: ${date}`;
+                    dateHeader.textContent = `Tanggal(日期): ${date}`;
                     dateHeader.onclick = () => {
                         const table = dateSection.querySelector('table');
                         const isVisible = table.style.display === 'table';
@@ -185,12 +185,12 @@
                     const thead = document.createElement('thead');
                     thead.innerHTML = `
                         <tr>
-                            <th>No</th>
-                            <th>Waktu</th>
+                            <th>No</br>(数字)</th>
+                            <th>Jam</br>(点钟)</th>
                             <th>Nilai V1</th>
                             <th>Pt</th>
-                            <th>Kadar SO2</th>
-                            <th>Pilih</th>
+                            <th>Kadar SO2</br>(二氧化硫浓度)</th>
+                            <th>Pilih</br>(选择)</th>
                         </tr>
                     `;
                     table.appendChild(thead);
