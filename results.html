@@ -27,12 +27,12 @@
             margin-bottom: 20px;
         }
         th, td {
-            border: 1px solid #ddd;
+            border: 1px solid #1E8500;
             padding: 8px;
             text-align: center;
         }
         th {
-            background-color: #f2f2f2;
+            background-color: #00D562;
         }
         .popup {
             display: none;
@@ -73,11 +73,24 @@
         .expanded {
             font-weight: bold;
         }
+        /* Style for date-picker and its container */
+        #date-picker {
+            background-color: #C9C9C9; /* Light green background */
+            font-size: 1em;
+            text-align: center;
+            width: 50%;
+            padding: 6px;
+            border: 2px solid #7A7A7A;
+            border-radius: 5px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Konsentrasi Gas SO2</h1>
+        <label for="date-picker">Pilih Tanggal:</label>
+        <input type="date" id="date-picker">
+        <button id="filter-button">Tampilkan Data</button>
         <div id="results"></div>
         <button onclick="showDeleteAllConfirmation()">Hapus Semua Data</button>
         <button onclick="showDeleteSelectedConfirmation()">Hapus Data Terpilih</button>
@@ -134,48 +147,38 @@
             return temp;
         };
 
-        onValue(dataRef, (snapshot) => {
-            const data = snapshot.val();
+        const fetchData = (callback) => {
+            onValue(dataRef, (snapshot) => {
+                const data = snapshot.val();
+                console.log("Data fetched from Firebase:", data);
+                callback(data);
+            });
+        };
+
+        const renderData = (data, dateFilter = null) => {
             const resultsContainer = document.getElementById('results');
             resultsContainer.innerHTML = '';
 
             if (data) {
-                const groupedData = {};
+                const filteredData = [];
 
                 Object.keys(data).forEach((key) => {
                     const item = data[key];
                     const date = new Date(item.time).toLocaleDateString();
-
-                    if (!groupedData[date]) {
-                        groupedData[date] = [];
+                    if (!dateFilter || date === dateFilter) {
+                        filteredData.push({
+                            key: key,
+                            time: item.time,
+                            v1: item.v1,
+                            pt: item.pt,
+                            so2: item.so2
+                        });
                     }
-
-                    groupedData[date].push({
-                        key: key,
-                        time: item.time,
-                        v1: item.v1,
-                        pt: item.pt,
-                        so2: item.so2
-                    });
                 });
 
-                Object.keys(groupedData).forEach((date) => {
-                    groupedData[date].sort((a, b) => new Date(a.time) - new Date(b.time)); // Sorting data by time
+                filteredData.sort((a, b) => new Date(a.time) - new Date(b.time)); // Sorting data by time
 
-                    const dateSection = document.createElement('div');
-                    dateSection.className = 'date-section';
-
-                    const dateHeader = document.createElement('h2');
-                    dateHeader.className = 'date-header';
-                    dateHeader.textContent = `Tanggal: ${date}`;
-                    dateHeader.onclick = () => {
-                        const table = dateSection.querySelector('table');
-                        const isVisible = table.style.display === 'table';
-                        table.style.display = isVisible ? 'none' : 'table';
-                        dateHeader.classList.toggle('expanded', !isVisible);
-                    };
-                    dateSection.appendChild(dateHeader);
-
+                if (filteredData.length > 0) {
                     const table = document.createElement('table');
                     const thead = document.createElement('thead');
                     thead.innerHTML = `
@@ -191,7 +194,7 @@
                     table.appendChild(thead);
 
                     const tbody = document.createElement('tbody');
-                    groupedData[date].forEach((item, idx) => {
+                    filteredData.forEach((item, idx) => {
                         const temp = ptToTemp(item.pt);
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
@@ -206,27 +209,57 @@
                     });
                     table.appendChild(tbody);
 
-                    dateSection.appendChild(table);
-                    resultsContainer.appendChild(dateSection);
-                });
+                    resultsContainer.appendChild(table);
+                } else {
+                    resultsContainer.innerHTML = '<p>Tidak ada data</p>';
+                }
             } else {
                 resultsContainer.innerHTML = '<p>Tidak ada data</p>';
             }
-        });
+        };
+
+        const filterByDate = () => {
+            const dateInput = document.getElementById('date-picker').value;
+            if (!dateInput) {
+                alert('Silakan pilih tanggal terlebih dahulu.');
+                return;
+            }
+            const selectedDate = new Date(dateInput).toLocaleDateString();
+            console.log("Filtering data for date:", selectedDate);
+            fetchData((data) => renderData(data, selectedDate));
+        };
+
+        // Fungsi untuk menampilkan data saat halaman pertama kali dimuat
+        const loadTodayData = () => {
+            const today = new Date().toLocaleDateString();
+            console.log("Loading data for today:", today);
+            fetchData((data) => renderData(data, today));
+        };
+
+        // Fungsi untuk menetapkan nilai default input tanggal ke tanggal hari ini
+        const setDefaultDate = () => {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            document.getElementById('date-picker').value = `${year}-${month}-${day}`;
+        };
+
+        document.getElementById('filter-button').addEventListener('click', filterByDate);
 
         window.showDeleteAllConfirmation = function() {
             deleteKey = null;
             deleteAll = true;
             deleteSelected = false;
             document.getElementById('delete-confirmation').style.display = 'flex';
-        }
+        };
 
         window.showDeleteSelectedConfirmation = function() {
             deleteKey = null;
             deleteAll = false;
             deleteSelected = true;
             document.getElementById('delete-selected-confirmation').style.display = 'flex';
-        }
+        };
 
         window.confirmDeletion = function() {
             const verificationCode = document.getElementById('verification-code').value;
@@ -236,6 +269,7 @@
                         .then(() => {
                             alert('Semua data berhasil dihapus.');
                             document.getElementById('delete-confirmation').style.display = 'none';
+                            fetchData((data) => renderData(data));
                         })
                         .catch((error) => {
                             console.error("Error removing data: ", error);
@@ -245,7 +279,7 @@
             } else {
                 alert('Kode verifikasi salah.');
             }
-        }
+        };
 
         window.confirmDeletionSelected = function() {
             const verificationCode = document.getElementById('verification-code-selected').value;
@@ -264,6 +298,7 @@
                             if (idx === keysToDelete.length - 1) {
                                 alert('Data terpilih berhasil dihapus.');
                                 document.getElementById('delete-selected-confirmation').style.display = 'none';
+                                fetchData((data) => renderData(data));
                             }
                         })
                         .catch((error) => {
@@ -274,12 +309,17 @@
             } else {
                 alert('Kode verifikasi salah.');
             }
-        }
+        };
 
         window.cancelDeletion = function() {
             document.getElementById('delete-confirmation').style.display = 'none';
             document.getElementById('delete-selected-confirmation').style.display = 'none';
-        }
+        };
+
+        // Set default date to today
+        setDefaultDate();
+        // Load data for today when the page first loads
+        loadTodayData();
     </script>
 </body>
 </html>
