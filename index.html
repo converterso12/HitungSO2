@@ -81,6 +81,14 @@
             <button type="button" onclick="saveConstants()">Simpan Konstanta</button>
         </form>
         <form id="calculationForm">
+            <label for="location">Lokasi Pengambilan Sampel:</label>
+            <select id="location">
+                <option value="Outlet SO2 blower">Outlet SO2 blower</option>
+                <option value="Converter Layer 1">Converter Layer 1</option>
+                <option value="Converter Layer 2">Converter Layer 2</option>
+                <option value="Converter Layer 3">Converter Layer 3</option>
+                <option value="Converter Layer 4">Converter Layer 4</option>
+            </select>
             <label for="time">Waktu Pengujian:</label>
             <input type="datetime-local" id="time">
             <label for="v1">Nilai V1:</label>
@@ -131,6 +139,7 @@
         }
 
         window.calculateSO2 = function() {
+            const location = document.getElementById('location').value;
             const time = document.getElementById('time').value;
             const v1 = parseFloat(document.getElementById('v1').value);
 
@@ -139,6 +148,7 @@
 
                 const newEntry = push(ref(database, 'so2-data'));
                 set(newEntry, {
+                    location: location,
                     time: time,
                     v1: v1,
                     pt: constants.pt,

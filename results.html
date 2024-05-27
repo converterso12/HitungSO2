@@ -70,18 +70,18 @@
         .date-header:hover {
             text-decoration: underline;
         }
-        .expanded {
-            font-weight: bold;
-        }
-        /* Style for date-picker and its container */
         #date-picker {
-            background-color: #C9C9C9; /* Light green background */
+            background-color: #C9C9C9;
             font-size: 1em;
             text-align: center;
             width: 50%;
             padding: 6px;
             border: 2px solid #7A7A7A;
             border-radius: 5px;
+        }
+        .nav-buttons {
+            text-align: center;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -92,12 +92,15 @@
         <input type="date" id="date-picker">
         <button id="filter-button">Tampilkan Data</button>
         <div id="results"></div>
+        <div class="nav-buttons">
+            <button id="prev-button">⬅️ Back</button>
+            <button id="next-button">Next ➡️</button>
+        </div>
         <button onclick="showDeleteAllConfirmation()">Hapus Semua Data</button>
         <button onclick="showDeleteSelectedConfirmation()">Hapus Data Terpilih</button>
         <button onclick="location.href='index.html'">Kembali ke Perhitungan</button>
     </div>
 
-    <!-- Konfirmasi Penghapusan -->
     <div id="delete-confirmation" class="popup">
         <div class="popup-content">
             <h2>Konfirmasi Penghapusan</h2>
@@ -108,7 +111,6 @@
         </div>
     </div>
 
-    <!-- Konfirmasi Penghapusan Terpilih -->
     <div id="delete-selected-confirmation" class="popup">
         <div class="popup-content">
             <h2>Konfirmasi Penghapusan</h2>
@@ -156,32 +158,24 @@
         };
 
         const renderData = (data, dateFilter = null) => {
-            const resultsContainer = document.getElementById('results');
-            resultsContainer.innerHTML = '';
+        const resultsContainer = document.getElementById('results');
+        resultsContainer.innerHTML = '';
 
-            if (data) {
-                const filteredData = [];
+        if (data) {
+            // Urutan lokasi yang diinginkan
+            const locationsOrder = ['Outlet SO2 Blower', 'Converter Layer 1', 'Converter Layer 2', 'Converter Layer 3', 'Converter Layer 4'];
 
-                Object.keys(data).forEach((key) => {
-                    const item = data[key];
-                    const date = new Date(item.time).toLocaleDateString();
-                    if (!dateFilter || date === dateFilter) {
-                        filteredData.push({
-                            key: key,
-                            time: item.time,
-                            v1: item.v1,
-                            pt: item.pt,
-                            so2: item.so2
-                        });
-                    }
-                });
+            // Menyimpan tabel untuk setiap lokasi
+            const tables = {};
 
-                filteredData.sort((a, b) => new Date(a.time) - new Date(b.time)); // Sorting data by time
-
-                if (filteredData.length > 0) {
-                    const table = document.createElement('table');
-                    const thead = document.createElement('thead');
-                    thead.innerHTML = `
+            // Membuat tabel untuk setiap lokasi
+            locationsOrder.forEach(location => {
+                tables[location] = document.createElement('table');
+                tables[location].innerHTML = `
+                    <thead>
+                        <tr>
+                            <th colspan="6">${location}</th>
+                        </tr>
                         <tr>
                             <th>No</th>
                             <th>Jam</th>
@@ -190,33 +184,64 @@
                             <th>Kadar SO2</th>
                             <th>Pilih</th>
                         </tr>
-                    `;
-                    table.appendChild(thead);
+                    </thead>
+                    <tbody></tbody>
+                `;
+            });
 
-                    const tbody = document.createElement('tbody');
-                    filteredData.forEach((item, idx) => {
-                        const temp = ptToTemp(item.pt);
+            // Memasukkan data ke dalam tabel untuk setiap lokasi
+            Object.keys(data).forEach((key) => {
+                const item = data[key];
+                const date = new Date(item.time).toLocaleDateString();
+                if (!dateFilter || date === dateFilter) {
+                    const temp = ptToTemp(item.pt);
+                    const location = item.location;
+                    const table = tables[location];
+                    if (table) {
+                        const tbody = table.querySelector('tbody');
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
-                            <td>${idx + 1}</td>
+                            <td>${tbody.children.length + 1}</td>
                             <td>${new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                             <td>${item.v1}</td>
                             <td>${temp}°C</td>
                             <td>${item.so2.toFixed(2)}</td>
-                            <td><input type="checkbox" class="delete-checkbox" data-key="${item.key}"></td>
+                            <td><input type="checkbox" class="delete-checkbox" data-key="${key}"></td>
                         `;
                         tbody.appendChild(tr);
-                    });
-                    table.appendChild(tbody);
-
-                    resultsContainer.appendChild(table);
-                } else {
-                    resultsContainer.innerHTML = '<p>Tidak ada data</p>';
+                    }
                 }
-            } else {
-                resultsContainer.innerHTML = '<p>Tidak ada data</p>';
-            }
-        };
+            });
+
+            // Menambahkan tabel ke dalam hasil
+            locationsOrder.forEach(location => {
+                const table = tables[location];
+                if (table) {
+                    resultsContainer.appendChild(table);
+                }
+            });
+        } else {
+            // Tampilkan tabel kosong jika tidak ada data
+            const emptyTable = document.createElement('table');
+            emptyTable.innerHTML = `
+                <thead>
+                    <tr>
+                        <th colspan="6">Tidak ada data</th>
+                    </tr>
+                    <tr>
+                        <th>No</th>
+                        <th>Jam</th>
+                        <th>Nilai V1</th>
+                        <th>Temp (°C)</th>
+                        <th>Kadar SO2</th>
+                        <th>Pilih</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            `;
+            resultsContainer.appendChild(emptyTable);
+        }
+    };
 
         const filterByDate = () => {
             const dateInput = document.getElementById('date-picker').value;
@@ -229,14 +254,6 @@
             fetchData((data) => renderData(data, selectedDate));
         };
 
-        // Fungsi untuk menampilkan data saat halaman pertama kali dimuat
-        const loadTodayData = () => {
-            const today = new Date().toLocaleDateString();
-            console.log("Loading data for today:", today);
-            fetchData((data) => renderData(data, today));
-        };
-
-        // Fungsi untuk menetapkan nilai default input tanggal ke tanggal hari ini
         const setDefaultDate = () => {
             const today = new Date();
             const year = today.getFullYear();
@@ -245,7 +262,20 @@
             document.getElementById('date-picker').value = `${year}-${month}-${day}`;
         };
 
+        const changeDate = (days) => {
+            const datePicker = document.getElementById('date-picker');
+            const currentDate = new Date(datePicker.value);
+            currentDate.setDate(currentDate.getDate() + days);
+            const year = currentDate.getFullYear();
+            const month = (currentDate.getMonth() + 1).toString().padStart(2, '0');
+            const day = currentDate.getDate().toString().padStart(2, '0');
+            datePicker.value = `${year}-${month}-${day}`;
+            filterByDate();
+        };
+
         document.getElementById('filter-button').addEventListener('click', filterByDate);
+        document.getElementById('prev-button').addEventListener('click', () => changeDate(-1));
+        document.getElementById('next-button').addEventListener('click', () => changeDate(1));
 
         window.showDeleteAllConfirmation = function() {
             deleteKey = null;
@@ -316,9 +346,12 @@
             document.getElementById('delete-selected-confirmation').style.display = 'none';
         };
 
-        // Set default date to today
+        const loadTodayData = () => {
+            const today = new Date().toLocaleDateString();
+            fetchData((data) => renderData(data, today));
+        };
+
         setDefaultDate();
-        // Load data for today when the page first loads
         loadTodayData();
     </script>
 </body>
