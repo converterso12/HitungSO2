@@ -158,82 +158,93 @@
         };
 
         const renderData = (data, dateFilter = null) => {
-            const resultsContainer = document.getElementById('results');
-            resultsContainer.innerHTML = '';
+    const resultsContainer = document.getElementById('results');
+    resultsContainer.innerHTML = '';
 
-            if (data) {
-                const filteredData = [];
+    if (data) {
+        const filteredData = [];
 
-                Object.keys(data).forEach((key) => {
-                    const item = data[key];
-                    const date = new Date(item.time).toLocaleDateString();
-                    if (!dateFilter || date === dateFilter) {
-                        filteredData.push({
-                            key: key,
-                            time: item.time,
-                            v1: item.v1,
-                            pt: item.pt,
-                            so2: item.so2,
-                            location: item.location
-                        });
-                    }
+        Object.keys(data).forEach((key) => {
+            const item = data[key];
+            const date = new Date(item.time).toLocaleDateString();
+            if (!dateFilter || date === dateFilter) {
+                filteredData.push({
+                    key: key,
+                    time: item.time,
+                    v1: item.v1,
+                    pt: item.pt,
+                    so2: item.so2,
+                    location: item.location
                 });
-
-                filteredData.sort((a, b) => new Date(a.time) - new Date(b.time));
-
-                if (filteredData.length > 0) {
-                    const groupedData = filteredData.reduce((acc, item) => {
-                        if (!acc[item.location]) {
-                            acc[item.location] = [];
-                        }
-                        acc[item.location].push(item);
-                        return acc;
-                    }, {});
-
-                    Object.keys(groupedData).forEach(location => {
-                        const locationData = groupedData[location];
-                        const table = document.createElement('table');
-                        const thead = document.createElement('thead');
-                        thead.innerHTML = `
-                            <tr>
-                                <th colspan="6">${location}</th>
-                            </tr>
-                            <tr>
-                                <th>No</th>
-                                <th>Jam</th>
-                                <th>Nilai V1</th>
-                                <th>Temp (°C)</th>
-                                <th>Kadar SO2</th>
-                                <th>Pilih</th>
-                            </tr>
-                        `;
-                        table.appendChild(thead);
-
-                        const tbody = document.createElement('tbody');
-                        locationData.forEach((item, idx) => {
-                            const temp = ptToTemp(item.pt);
-                            const tr = document.createElement('tr');
-                            tr.innerHTML = `
-                                <td>${idx + 1}</td>
-                                <td>${new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                                <td>${item.v1}</td>
-                                <td>${temp}°C</td>
-                                <td>${item.so2.toFixed(2)}</td>
-                                <td><input type="checkbox" class="delete-checkbox" data-key="${item.key}"></td>
-                            `;
-                            tbody.appendChild(tr);
-                        });
-                        table.appendChild(tbody);
-
-                        resultsContainer.appendChild(table);
-                    });
-                } else {
-                    resultsContainer.innerHTML = '<p>Tidak ada data</p>';
-                }
-            } else {
-                resultsContainer.innerHTML = '<p>Tidak ada data</p>';
             }
-        };
+        });
+
+        filteredData.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+        if (filteredData.length > 0) {
+            const groupedData = filteredData.reduce((acc, item) => {
+                if (!acc[item.location]) {
+                    acc[item.location] = [];
+                }
+                acc[item.location].push(item);
+                return acc;
+            }, {});
+
+            // Define the desired order of locations
+            const locationOrder = [
+                'Outlet SO2 blower',
+                'Converter Layer 1',
+                'Converter Layer 2',
+                'Converter Layer 3',
+                'Converter Layer 4'
+            ];
+
+            locationOrder.forEach(location => {
+                if (groupedData[location]) {
+                    const locationData = groupedData[location];
+                    const table = document.createElement('table');
+                    const thead = document.createElement('thead');
+                    thead.innerHTML = `
+                        <tr>
+                            <th colspan="6">${location}</th>
+                        </tr>
+                        <tr>
+                            <th>No</th>
+                            <th>Jam</th>
+                            <th>Nilai V1</th>
+                            <th>Temp (°C)</th>
+                            <th>Kadar SO2</th>
+                            <th>Pilih</th>
+                        </tr>
+                    `;
+                    table.appendChild(thead);
+
+                    const tbody = document.createElement('tbody');
+                    locationData.forEach((item, idx) => {
+                        const temp = ptToTemp(item.pt);
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `
+                            <td>${idx + 1}</td>
+                            <td>${new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                            <td>${item.v1}</td>
+                            <td>${temp}°C</td>
+                            <td>${item.so2.toFixed(2)}</td>
+                            <td><input type="checkbox" class="delete-checkbox" data-key="${item.key}"></td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                    table.appendChild(tbody);
+
+                    resultsContainer.appendChild(table);
+                }
+            });
+        } else {
+            resultsContainer.innerHTML = '<p>Tidak ada data</p>';
+        }
+    } else {
+        resultsContainer.innerHTML = '<p>Tidak ada data</p>';
+    }
+};
 
         const filterByDate = () => {
             const dateInput = document.getElementById('date-picker').value;
