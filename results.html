@@ -81,7 +81,7 @@
         }
         .nav-buttons {
             text-align: center;
-            margin-top: 5px;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -158,90 +158,82 @@
         };
 
         const renderData = (data, dateFilter = null) => {
-        const resultsContainer = document.getElementById('results');
-        resultsContainer.innerHTML = '';
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = '';
 
-        if (data) {
-            // Urutan lokasi yang diinginkan
-            const locationsOrder = ['Outlet SO2 Blower', 'Converter Layer 1', 'Converter Layer 2', 'Converter Layer 3', 'Converter Layer 4'];
+            if (data) {
+                const filteredData = [];
 
-            // Menyimpan tabel untuk setiap lokasi
-            const tables = {};
-
-            // Membuat tabel untuk setiap lokasi
-            locationsOrder.forEach(location => {
-                tables[location] = document.createElement('table');
-                tables[location].innerHTML = `
-                    <thead>
-                        <tr>
-                            <th colspan="6">${location}</th>
-                        </tr>
-                        <tr>
-                            <th>No</th>
-                            <th>Jam</th>
-                            <th>Nilai V1</th>
-                            <th>Temp (°C)</th>
-                            <th>Kadar SO2</th>
-                            <th>Pilih</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                `;
-            });
-
-            // Memasukkan data ke dalam tabel untuk setiap lokasi
-            Object.keys(data).forEach((key) => {
-                const item = data[key];
-                const date = new Date(item.time).toLocaleDateString();
-                if (!dateFilter || date === dateFilter) {
-                    const temp = ptToTemp(item.pt);
-                    const location = item.location;
-                    const table = tables[location];
-                    if (table) {
-                        const tbody = table.querySelector('tbody');
-                        const tr = document.createElement('tr');
-                        tr.innerHTML = `
-                            <td>${tbody.children.length + 1}</td>
-                            <td>${new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
-                            <td>${item.v1}</td>
-                            <td>${temp}°C</td>
-                            <td>${item.so2.toFixed(2)}</td>
-                            <td><input type="checkbox" class="delete-checkbox" data-key="${key}"></td>
-                        `;
-                        tbody.appendChild(tr);
+                Object.keys(data).forEach((key) => {
+                    const item = data[key];
+                    const date = new Date(item.time).toLocaleDateString();
+                    if (!dateFilter || date === dateFilter) {
+                        filteredData.push({
+                            key: key,
+                            time: item.time,
+                            v1: item.v1,
+                            pt: item.pt,
+                            so2: item.so2,
+                            location: item.location
+                        });
                     }
-                }
-            });
+                });
 
-            // Menambahkan tabel ke dalam hasil
-            locationsOrder.forEach(location => {
-                const table = tables[location];
-                if (table) {
-                    resultsContainer.appendChild(table);
+                filteredData.sort((a, b) => new Date(a.time) - new Date(b.time));
+
+                if (filteredData.length > 0) {
+                    const groupedData = filteredData.reduce((acc, item) => {
+                        if (!acc[item.location]) {
+                            acc[item.location] = [];
+                        }
+                        acc[item.location].push(item);
+                        return acc;
+                    }, {});
+
+                    Object.keys(groupedData).forEach(location => {
+                        const locationData = groupedData[location];
+                        const table = document.createElement('table');
+                        const thead = document.createElement('thead');
+                        thead.innerHTML = `
+                            <tr>
+                                <th colspan="6">${location}</th>
+                            </tr>
+                            <tr>
+                                <th>No</th>
+                                <th>Jam</th>
+                                <th>Nilai V1</th>
+                                <th>Temp (°C)</th>
+                                <th>Kadar SO2</th>
+                                <th>Pilih</th>
+                            </tr>
+                        `;
+                        table.appendChild(thead);
+
+                        const tbody = document.createElement('tbody');
+                        locationData.forEach((item, idx) => {
+                            const temp = ptToTemp(item.pt);
+                            const tr = document.createElement('tr');
+                            tr.innerHTML = `
+                                <td>${idx + 1}</td>
+                                <td>${new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                                <td>${item.v1}</td>
+                                <td>${temp}°C</td>
+                                <td>${item.so2.toFixed(2)}</td>
+                                <td><input type="checkbox" class="delete-checkbox" data-key="${item.key}"></td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                        table.appendChild(tbody);
+
+                        resultsContainer.appendChild(table);
+                    });
+                } else {
+                    resultsContainer.innerHTML = '<p>Tidak ada data</p>';
                 }
-            });
-        } else {
-            // Tampilkan tabel kosong jika tidak ada data
-            const emptyTable = document.createElement('table');
-            emptyTable.innerHTML = `
-                <thead>
-                    <tr>
-                        <th colspan="6">Tidak ada data</th>
-                    </tr>
-                    <tr>
-                        <th>No</th>
-                        <th>Jam</th>
-                        <th>Nilai V1</th>
-                        <th>Temp (°C)</th>
-                        <th>Kadar SO2</th>
-                        <th>Pilih</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            `;
-            resultsContainer.appendChild(emptyTable);
-        }
-    };
+            } else {
+                resultsContainer.innerHTML = '<p>Tidak ada data</p>';
+            }
+        };
 
         const filterByDate = () => {
             const dateInput = document.getElementById('date-picker').value;
@@ -271,6 +263,16 @@
             const day = currentDate.getDate().toString().padStart(2, '0');
             datePicker.value = `${year}-${month}-${day}`;
             filterByDate();
+        };
+
+        const loadTodayData = () => {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = (today.getMonth() + 1).toString().padStart(2, '0');
+            const day = today.getDate().toString().padStart(2, '0');
+            const todayDate = new Date(`${year}-${month}-${day}`).toLocaleDateString();
+            console.log("Loading data for today:", todayDate);
+            fetchData((data) => renderData(data, todayDate));
         };
 
         document.getElementById('filter-button').addEventListener('click', filterByDate);
@@ -344,11 +346,6 @@
         window.cancelDeletion = function() {
             document.getElementById('delete-confirmation').style.display = 'none';
             document.getElementById('delete-selected-confirmation').style.display = 'none';
-        };
-
-        const loadTodayData = () => {
-            const today = new Date().toLocaleDateString();
-            fetchData((data) => renderData(data, today));
         };
 
         setDefaultDate();
