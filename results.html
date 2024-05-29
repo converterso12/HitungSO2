@@ -83,6 +83,19 @@
             text-align: center;
             margin-top: 20px;
         }
+        #download-pdf-button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+#download-pdf-button:hover {
+    background-color: #0056b3;
+}
     </style>
 </head>
 <body>
@@ -91,6 +104,7 @@
         <label for="date-picker">Pilih Tanggal:</label>
         <input type="date" id="date-picker">
         <button id="filter-button">Tampilkan Data</button>
+       
         <div id="results"></div>
         <div class="nav-buttons">
             <button id="prev-button">⬅️ Back</button>
@@ -99,6 +113,7 @@
         <button onclick="showDeleteAllConfirmation()">Hapus Semua Data</button>
         <button onclick="showDeleteSelectedConfirmation()">Hapus Data Terpilih</button>
         <button onclick="location.href='index.html'">Kembali ke Perhitungan</button>
+         <button id="download-pdf-button">Ekstrak ke PDF</button>
     </div>
 
     <div id="delete-confirmation" class="popup">
@@ -362,5 +377,50 @@
         setDefaultDate();
         loadTodayData();
     </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.13/jspdf.plugin.autotable.min.js"></script>
+<script>
+    const { jsPDF } = window.jspdf;
+
+    document.getElementById('download-pdf-button').addEventListener('click', () => {
+        const doc = new jsPDF();
+        
+        const tables = document.querySelectorAll('table');
+        let yOffset = 10;
+        
+        const dateInput = document.getElementById('date-picker').value;
+        const selectedDate = dateInput ? new Date(dateInput).toLocaleDateString('en-CA') : 'tanpa-tanggal';
+        const fileName = `tabel-so2-${selectedDate}.pdf`;
+
+        tables.forEach((table, tableIndex) => {
+            if (tableIndex > 0) {
+                yOffset += 10; // Tambahkan jarak antar tabel
+            }
+
+            doc.text(table.querySelector('th').textContent, 10, yOffset);
+            yOffset += 10;
+
+            doc.autoTable({
+                html: table,
+                startY: yOffset,
+                columns: [
+                    { header: 'No', dataKey: 'No' },
+                    { header: 'Jam', dataKey: 'Jam' },
+                    { header: 'Nilai V1', dataKey: 'Nilai V1' },
+                    { header: 'Temp (°C)', dataKey: 'Temp (°C)' },
+                    { header: 'Kadar SO2', dataKey: 'Kadar SO2' }
+                ],
+                didDrawCell: (data) => {
+                    yOffset = data.cursor.y; // Perbarui yOffset untuk tabel berikutnya
+                }
+            });
+        });
+
+        doc.save(fileName);
+    });
+</script>
+</script>
 </body>
 </html>
