@@ -110,7 +110,6 @@
             <button id="prev-button">⬅️ Back</button>
             <button id="next-button">Next ➡️</button>
         </div>
-        <button onclick="showDeleteAllConfirmation()">Hapus Semua Data</button>
         <button onclick="showDeleteSelectedConfirmation()">Hapus Data Terpilih</button>
         <button onclick="location.href='index.html'">Kembali ke Perhitungan</button>
          <button id="download-pdf-button">Ekstrak ke PDF</button>
@@ -188,6 +187,7 @@
                     time: item.time,
                     v1: item.v1,
                     pt: item.pt,
+                    c: item.c,
                     so2: item.so2,
                     location: item.location
                 });
@@ -228,6 +228,7 @@
                             <th>Jam<br>点钟</th>
                             <th>Nilai V1</th>
                             <th>Temp(°C)<br>温度</th>
+                            <th>Nilai C</th>
                             <th>Kadar SO2<br>二氧化硫浓度</th>
                             <th>Pilih</th>
                         </tr>
@@ -243,6 +244,7 @@
                             <td>${new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                             <td>${item.v1}</td>
                             <td>${temp}°C</td>
+                            <td>${item.c}</td>
                             <td>${item.so2.toFixed(2)}</td>
                             <td><input type="checkbox" class="delete-checkbox" data-key="${item.key}"></td>
                         `;
@@ -410,6 +412,7 @@
                     { header: 'Jam', dataKey: 'Jam' },
                     { header: 'Nilai V1', dataKey: 'Nilai V1' },
                     { header: 'Temp (°C)', dataKey: 'Temp (°C)' },
+                    { header: 'Nilai C', dataKey: 'Nilai C' },
                     { header: 'Kadar SO2', dataKey: 'Kadar SO2' }
                 ],
                 didDrawCell: (data) => {
@@ -423,4 +426,5 @@
 </script>
 </script>
 </body>
-</html>
+    </html>
+    
