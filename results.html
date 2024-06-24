@@ -96,6 +96,11 @@
 #download-pdf-button:hover {
     background-color: #0056b3;
 }
+.delete-checkbox {
+            width: 15px;
+            height: 15px;
+            transform: scale(1.5); /* Atur skala sesuai kebutuhan */
+        }
     </style>
 </head>
 <body>
@@ -184,10 +189,10 @@
             if (!dateFilter || date === dateFilter) {
                 filteredData.push({
                     key: key,
+                    sampler: item.sampler,
                     time: item.time,
                     v1: item.v1,
                     pt: item.pt,
-                    c: item.c,
                     so2: item.so2,
                     location: item.location
                 });
@@ -221,15 +226,15 @@
                     const thead = document.createElement('thead');
                     thead.innerHTML = `
                         <tr>
-                            <th colspan="6">${location}</th>
+                            <th colspan="7">${location}</th>
                         </tr>
                         <tr>
                             <th>No</th>
-                            <th>Jam<br>点钟</th>
+                            <th>Sampler</th>
+                            <th>Jam</th>
                             <th>Nilai V1</th>
-                            <th>Temp(°C)<br>温度</th>
-                            <th>Nilai C</th>
-                            <th>Kadar SO2<br>二氧化硫浓度</th>
+                            <th>Temp (°C)</th>
+                            <th>Kadar SO2</th>
                             <th>Pilih</th>
                         </tr>
                     `;
@@ -241,10 +246,11 @@
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td>${idx + 1}</td>
+                            <td>${item.sampler}</td>
                             <td>${new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
+                            
                             <td>${item.v1}</td>
                             <td>${temp}°C</td>
-                            <td>${item.c}</td>
                             <td>${item.so2.toFixed(2)}</td>
                             <td><input type="checkbox" class="delete-checkbox" data-key="${item.key}"></td>
                         `;
@@ -409,10 +415,10 @@
                 startY: yOffset,
                 columns: [
                     { header: 'No', dataKey: 'No' },
+                    { header: 'Nama', dataKey: 'Nama },
                     { header: 'Jam', dataKey: 'Jam' },
                     { header: 'Nilai V1', dataKey: 'Nilai V1' },
                     { header: 'Temp (°C)', dataKey: 'Temp (°C)' },
-                    { header: 'Nilai C', dataKey: 'Nilai C' },
                     { header: 'Kadar SO2', dataKey: 'Kadar SO2' }
                 ],
                 didDrawCell: (data) => {
@@ -426,5 +432,4 @@
 </script>
 </script>
 </body>
-    </html>
-    
+</html>

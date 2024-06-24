@@ -89,6 +89,8 @@
                 <option value="Converter Layer 3">Converter Layer 3</option>
                 <option value="Converter Layer 4">Converter Layer 4</option>
             </select>
+            <label for="sampler">Sampler:</label>
+            <input type="text" id="sampler">
             <label for="time">Waktu Pengujian:</label>
             <input type="datetime-local" id="time">
             <label for="v1">Nilai V1:</label>
@@ -141,6 +143,7 @@
         window.calculateSO2 = function() {
             const location = document.getElementById('location').value;
             const time = document.getElementById('time').value;
+            const sampler = document.getElementById('sampler').value;
             const v1 = parseFloat(document.getElementById('v1').value);
 
             if (time && !isNaN(v1)) {
@@ -151,7 +154,7 @@
                     location: location,
                     time: time,
                     v1: v1,
-                    c: constants.c,
+                    sampler:sampler,
                     pt: constants.pt,
                     so2: so2
                 })
