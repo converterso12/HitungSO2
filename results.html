@@ -8,6 +8,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            
         }
         .container {
             max-width: 800px;
@@ -15,7 +16,8 @@
             padding: 20px;
             background-color: #f9f9f9;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); 
+            
         }
         h1 {
             text-align: center;
@@ -25,10 +27,12 @@
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 20px;
+            
+            
         }
         th, td {
             border: 1px solid #1E8500;
-            padding: 8px;
+            padding: 6px;
             text-align: center;
         }
         th {
@@ -192,6 +196,7 @@
                     sampler: item.sampler,
                     time: item.time,
                     v1: item.v1,
+                    c: item.c,
                     pt: item.pt,
                     so2: item.so2,
                     location: item.location
@@ -226,13 +231,14 @@
                     const thead = document.createElement('thead');
                     thead.innerHTML = `
                         <tr>
-                            <th colspan="7">${location}</th>
+                            <th colspan="8">${location}</th>
                         </tr>
                         <tr>
                             <th>No</th>
                             <th>Sampler</th>
                             <th>Jam</th>
                             <th>Nilai V1</th>
+                            <th>Nilai C</th>
                             <th>Temp (°C)</th>
                             <th>Kadar SO2</th>
                             <th>Pilih</th>
@@ -246,10 +252,12 @@
                         const tr = document.createElement('tr');
                         tr.innerHTML = `
                             <td>${idx + 1}</td>
-                            <td>${item.sampler}</td>
+                            <td
+>${item.sampler}</td>
                             <td>${new Date(item.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</td>
                             
                             <td>${item.v1}</td>
+                            <td>${item.c}</td>
                             <td>${temp}°C</td>
                             <td>${item.so2.toFixed(2)}</td>
                             <td><input type="checkbox" class="delete-checkbox" data-key="${item.key}"></td>
@@ -432,4 +440,4 @@
 </script>
 </script>
 </body>
-</html>
+    </html>
