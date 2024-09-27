@@ -60,12 +60,12 @@
     <div class="container">
         <h1>Perhitungan Kadar SO2</h1>
         <form id="constantsForm">
-            <label for="c">Nilai C:</label>
-            <input type="number" id="c">
-            <label for="v">Nilai V (ml):</label>
-            <input type="number" id="v">
-            <label for="temperature">Temperatur (°C):</label>
-            <select id="temperature">
+    <label for="c">Nilai C:</label>
+    <input type="number" id="c">
+    <label for="v">Nilai V (ml):</label>
+    <input type="number" id="v">
+    <label for="temperature">Temperatur (°C):</label>
+    <select id="temperature">
                 <option value="0.884">25°C (Pt: 0.884)</option>
                 <option value="0.879">26°C (Pt: 0.879)</option>
                 <option value="0.874">27°C (Pt: 0.874)</option>
@@ -77,119 +77,159 @@
                 <option value="0.844">33°C (Pt: 0.844)</option>
                 <option value="0.839">34°C (Pt: 0.839)</option>
                 <option value="0.834">35°C (Pt: 0.834)</option>
-            </select>
-            <button type="button" onclick="saveConstants()">Simpan Konstanta</button>
-        </form>
-        <form id="calculationForm">
-            <label for="location">Lokasi Pengambilan Sampel:</label>
-            <select id="location">
-                <option value="Outlet SO2 blower">Outlet SO2 blower</option>
-                <option value="Converter Layer 1">Converter Layer 1</option>
-                <option value="Converter Layer 2">Converter Layer 2</option>
-                <option value="Converter Layer 3">Converter Layer 3</option>
-                <option value="Converter Layer 4">Converter Layer 4</option>
-            </select>
-            <label for="sampler">Sampler:</label>
-            <input type="text" id="sampler">
-            <label for="time">Waktu Pengujian:</label>
-            <input type="datetime-local" id="time">
-            <label for="v1">Nilai V1:</label>
-            <input type="number" id="v1">
-            <button type="button" onclick="calculateSO2()">Hitung</button>
-        </form>
-        <div id="result"></div>
-        <button onclick="location.href='results.html'">Lihat Hasil</button>
+    </select>
+    <button type="button" onclick="saveConstants()">Simpan Konstanta</button>
+
+    <!-- Pilihan Train 1 atau Train 2 -->
+    <label for="train">Pilih Train:</label>
+    <select id="train">
+        <option value="train1">Train 1</option>
+        <option value="train2">Train 2</option>
+    </select>
+</form>
+
+<form id="calculationForm">
+    <label for="location">Lokasi Pengambilan Sampel:</label>
+    <select id="location">
+        <option value="Outlet SO2 blower">Outlet SO2 blower</option>
+        <!-- ... opsi lainnya ... -->
+    </select>
+    <label for="sampler">Sampler:</label>
+    <input type="text" id="sampler">
+    <label for="time">Waktu Pengujian:</label>
+    <input type="datetime-local" id="time">
+    <label for="v1">Nilai V1:</label>
+    <input type="number" id="v1">
+    <button type="button" onclick="calculateSO2()">Hitung</button>
+</form>
+
+<div id="result"></div>
+        <button onclick="location.href='results.html'">Lihat Hasil Train 1</button>
+        <button onclick="location.href='resultsT2.html'">Lihat Hasil Train 2</button>
     </div>
     
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
-        import { getDatabase, ref, set, push, get } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-app.js";
+import { getDatabase, ref, set, push, get } from "https://www.gstatic.com/firebasejs/10.12.1/firebase-database.js";
 
-        const firebaseConfig = {
-            apiKey: "AIzaSyDwcwcIdTSPUadytFCh8RqBM8zCVtXEo-I",
-            authDomain: "dataso2-id.firebaseapp.com",
-            databaseURL: "https://dataso2-id-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "dataso2-id",
-            storageBucket: "dataso2-id.appspot.com",
-            messagingSenderId: "1084913028872",
-            appId: "1:1084913028872:web:d3588f12dcbeed0cec26bd"
-        };
+// Konfigurasi Firebase Train 1
+const firebaseConfig1 = {
+    apiKey: "AIzaSyDwcwcIdTSPUadytFCh8RqBM8zCVtXEo-I",
+    authDomain: "dataso2-id.firebaseapp.com",
+    databaseURL: "https://dataso2-id-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "dataso2-id",
+    storageBucket: "dataso2-id.appspot.com",
+    messagingSenderId: "1084913028872",
+    appId: "1:1084913028872:web:d3588f12dcbeed0cec26bd"
+};
 
-        const app = initializeApp(firebaseConfig);
-        const database = getDatabase(app);
-        const constantsRef = ref(database, 'constants');
+// Konfigurasi Firebase Train 2
+const firebaseConfig2 = {
+  apiKey: "AIzaSyCmhik0I8YAP3gqSpuMaut0JgtuOdkzISY",
+  authDomain: "hitungso2-train2.firebaseapp.com",
+  databaseURL: "https://hitungso2-train2-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "hitungso2-train2",
+  storageBucket: "hitungso2-train2.appspot.com",
+  messagingSenderId: "730598671788",
+  appId: "1:730598671788:web:99ea6a92c43299b1282609"
+};
 
-        window.constants = {
-            c: 0.10282,
-            v: 10,
-            pt: 0.884.toFixed(3) // Pt ditampilkan dengan 3 angka di belakang koma
-        };
+// Inisialisasi aplikasi Firebase dengan nama unik
+const appTrain1 = initializeApp(firebaseConfig1, "Train1");
+const appTrain2 = initializeApp(firebaseConfig2, "Train2");
 
-        window.saveConstants = function() {
-            constants.c = parseFloat(document.getElementById('c').value);
-            constants.v = parseFloat(document.getElementById('v').value);
-            constants.pt = parseFloat(document.getElementById('temperature').value).toFixed(3); // Memastikan Pt menampilkan 3 angka di belakang koma
+// Database untuk Train 1 dan Train 2
+const databaseTrain1 = getDatabase(appTrain1);
+const databaseTrain2 = getDatabase(appTrain2);
 
-            set(constantsRef, constants)
-                .then(() => {
-                    alert('Konstanta berhasil disimpan');
-                })
-                .catch((error) => {
-                    console.error("Error saving constants: ", error);
-                    alert("Terjadi kesalahan saat menyimpan data.");
-                });
+// Referensi konstanta yang tetap menggunakan Train 1
+const constantsRef = ref(databaseTrain1, 'constants');
+
+window.constants = {
+    c: 0.10282,
+    v: 10,
+    pt: 0.884.toFixed(3) // Pt ditampilkan dengan 3 angka di belakang koma
+};
+
+// Fungsi untuk menyimpan konstanta ke Firebase Train 1
+window.saveConstants = function () {
+    constants.c = parseFloat(document.getElementById('c').value);
+    constants.v = parseFloat(document.getElementById('v').value);
+    constants.pt = parseFloat(document.getElementById('temperature').value).toFixed(3); // Memastikan Pt menampilkan 3 angka di belakang koma
+
+    set(constantsRef, constants)
+        .then(() => {
+            alert('Konstanta berhasil disimpan');
+        })
+        .catch((error) => {
+            console.error("Error saving constants: ", error);
+            alert("Terjadi kesalahan saat menyimpan data.");
+        });
+};
+
+// Fungsi untuk menghitung SO2 dan menyimpan di Firebase sesuai pilihan Train
+window.calculateSO2 = function () {
+    const train = document.getElementById('train').value; // Mendapatkan pilihan train
+    const location = document.getElementById('location').value;
+    const time = document.getElementById('time').value;
+    const sampler = document.getElementById('sampler').value;
+    const v1 = parseFloat(document.getElementById('v1').value);
+
+    if (time && !isNaN(v1)) {
+        const so2 = (constants.c * constants.v * 10.945) / (constants.pt * v1 + (constants.c * constants.v * 10.945)) * 100;
+
+        let databaseRef;
+        if (train === 'train2') {
+            // Jika Train 2 dipilih, gunakan database Train 2
+            databaseRef = ref(databaseTrain2, 'so2-data');
+        } else {
+            // Default adalah Train 1
+            databaseRef = ref(databaseTrain1, 'so2-data');
         }
 
-        window.calculateSO2 = function() {
-            const location = document.getElementById('location').value;
-            const time = document.getElementById('time').value;
-            const sampler = document.getElementById('sampler').value;
-            const v1 = parseFloat(document.getElementById('v1').value);
+        const newEntry = push(databaseRef);
+        set(newEntry, {
+            location: location,
+            time: time,
+            v1: v1,
+            c: constants.c,
+            sampler: sampler,
+            pt: constants.pt,
+            so2: so2
+        })
+        .then(() => {
+            document.getElementById('result').innerHTML = `Hasil Kadar SO2: ${so2.toFixed(2)}`;
+        })
+        .catch((error) => {
+            console.error("Error writing to database: ", error);
+            alert("Terjadi kesalahan saat menyimpan data.");
+        });
+    } else {
+        alert('Harap isi semua data dengan benar');
+    }
+};
 
-            if (time && !isNaN(v1)) {
-                const so2 = (constants.c * constants.v * 10.945) / (constants.pt * v1 + (constants.c * constants.v * 10.945)) * 100;
+// Fungsi untuk memuat konstanta saat halaman dimuat
+function loadConstants() {
+    get(constantsRef).then((snapshot) => {
+        if (snapshot.exists()) {
+            const data = snapshot.val();
+            constants.c = data.c || constants.c;
+            constants.v = data.v || constants.v;
+            constants.pt = data.pt || constants.pt;
 
-                const newEntry = push(ref(database, 'so2-data'));
-                set(newEntry, {
-                    location: location,
-                    time: time,
-                    v1: v1,
-                    c: constants.c,
-                    sampler:sampler,
-                    pt: constants.pt,
-                    so2: so2
-                })
-                .then(() => {
-                    document.getElementById('result').innerHTML = `Hasil Kadar SO2: ${so2.toFixed(2)}`;
-                })
-               .catch((error) => {
-                        console.error("Error writing to database: ", error);
-                        alert("Terjadi kesalahan saat menyimpan data.");
-                    });
-            } else {
-                alert('Harap isi semua data dengan benar');
-            }
+            document.getElementById('c').value = constants.c;
+            document.getElementById('v').value = constants.v;
+            document.getElementById('temperature').value = parseFloat(constants.pt).toFixed(3); // Memastikan Pt ditampilkan dengan 3 angka di belakang koma
         }
+    }).catch((error) => {
+        console.error("Error loading constants: ", error);
+    });
+}
 
-        function loadConstants() {
-            get(constantsRef).then((snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    constants.c = data.c || constants.c;
-                    constants.v = data.v || constants.v;
-                    constants.pt = data.pt || constants.pt;
-
-                    document.getElementById('c').value = constants.c;
-                    document.getElementById('v').value = constants.v;
-                    document.getElementById('temperature').value = parseFloat(constants.pt).toFixed(3); // Memastikan Pt ditampilkan dengan 3 angka di belakang koma
-                }
-            }).catch((error) => {
-                console.error("Error loading constants: ", error);
-            });
-        }
-
-        // Load constants when the page loads
-        window.onload = loadConstants;
+// Load constants when the page loads
+window.onload = loadConstants;
     </script>
 </body>
+</html>
 </html>
